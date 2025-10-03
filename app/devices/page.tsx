@@ -1,5 +1,8 @@
+// src/app/devices/page.tsx
+
 "use client";
 import { useEffect, useState } from "react";
+import { PlusCircle, RefreshCw, MessageSquarePlus, ArrowLeft, ArrowRight } from 'lucide-react';
 import api from "@/utils/api";
 import { Device, Patient } from "@/utils/types";
 import DeviceTable from "@/components/DeviceTable";
@@ -19,31 +22,37 @@ export default function DevicesPage() {
     setLoading(true);
     try {
       const res = await api.get(url ?? "/devices/");
-      const data = res.data;
-      setDevices(data.results);
-      setNext(data.next);
-      setPrevious(data.previous);
-      setCount(data.count);
+      setDevices(res.data.results);
+      setNext(res.data.next);
+      setPrevious(res.data.previous);
+      setCount(res.data.count);
     } catch (err) {
       console.error("Erreur fetch devices", err);
-      alert("Impossible de charger les devices");
     } finally {
       setLoading(false);
     }
   };
 
-  const loadPatients = async () => {
-    try {
-      const res = await api.get("/patients/");
-      setPatients(res.data.results);
-    } catch (err) {
-      console.error("Erreur fetch patients", err);
-    }
-  };
-
   useEffect(() => {
-    load();
-    loadPatients();
+    const loadAll = async () => {
+        setLoading(true);
+        try {
+            const [devicesRes, patientsRes] = await Promise.all([
+                api.get("/devices/"),
+                api.get("/patients/")
+            ]);
+            setDevices(devicesRes.data.results);
+            setNext(devicesRes.data.next);
+            setPrevious(devicesRes.data.previous);
+            setCount(devicesRes.data.count);
+            setPatients(patientsRes.data.results);
+        } catch (err) {
+            console.error("Erreur lors du chargement initial", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    loadAll();
   }, []);
 
   const handleSaved = (d: Device) => {
@@ -55,63 +64,72 @@ export default function DevicesPage() {
   const handleEdit = (d: Device) => {
     setEditing(d);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const handleDeleted = (id: number) => {
-    load();
+  
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditing(null);
   };
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Devices</h1>
-        <div>
-          <button onClick={() => { setEditing(null); setShowForm(true); }} className="px-4 py-2 bg-green-600 text-white rounded">
-            + Nouveau device
-          </button>
-          <button onClick={() => load()} className="ml-2 px-4 py-2 border rounded">Rafraîchir</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-6">
-        <div className="col-span-1">
-          {showForm ? (
-            <DeviceForm initial={editing ?? undefined} onSaved={handleSaved} onCancel={() => { setShowForm(false); setEditing(null); }} patients={patients} />
-          ) : (
-            <div className="p-4 border rounded bg-white">
-              <p className="text-sm text-gray-600">Cliquez sur « + Nouveau device » pour ajouter.</p>
-            </div>
-          )}
+    // Conteneur principal de la page
+    <main className="p-4 sm:p-6 md:p-8 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* En-tête de la page */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Gestion des Appareils</h1>
+          <div className="flex items-center gap-2">
+            <button onClick={() => load()} className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 rounded-md font-semibold hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <RefreshCw size={16} />
+              Rafraîchir
+            </button>
+            <button onClick={() => { setEditing(null); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white rounded-md font-semibold hover:bg-cyan-700 transition-colors">
+              <PlusCircle size={16} />
+              Nouveau appareil
+            </button>
+          </div>
         </div>
 
-        <div className="col-span-1">
-          {loading ? (
-            <div>Chargement...</div>
-          ) : (
-            <DeviceTable devices={devices} onEdit={handleEdit} onDeleted={handleDeleted} patients={patients} />
-          )}
+        {/* Section du Formulaire (conditionnelle) */}
+        {showForm && (
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-lg shadow-md">
+            <DeviceForm initial={editing ?? undefined} onSaved={handleSaved} onCancel={handleCancel} patients={patients} />
+          </div>
+        )}
+        
+        {/* Section du Tableau */}
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md">
+            {loading ? (
+                <div className="text-center p-12">Chargement des données...</div>
+            ) : (
+                <>
+                    <DeviceTable devices={devices} onEdit={handleEdit} onDeleted={load} patients={patients} />
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-700">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Total : <span className="font-semibold">{count}</span> appareils</p>
+                        <div className="flex gap-2">
+                        <button
+                            onClick={() => previous && load(previous.replace(process.env.NEXT_PUBLIC_API_BASE ?? "", ""))}
+                            disabled={!previous}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            <ArrowLeft size={14} /> Précédent
+                        </button>
+                        <button
+                            onClick={() => next && load(next.replace(process.env.NEXT_PUBLIC_API_BASE ?? "", ""))}
+                            disabled={!next}
+                            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-slate-300 rounded-md disabled:opacity-50 hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            Suivant <ArrowRight size={14} />
+                        </button>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
       </div>
-
-      <div className="flex items-center justify-between mt-4">
-        <p className="text-sm text-gray-600">Total : {count} devices</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => previous && load(previous.replace(process.env.NEXT_PUBLIC_API_BASE ?? "", ""))}
-            disabled={!previous}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            ← Précédent
-          </button>
-          <button
-            onClick={() => next && load(next.replace(process.env.NEXT_PUBLIC_API_BASE ?? "", ""))}
-            disabled={!next}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Suivant →
-          </button>
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }
