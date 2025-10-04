@@ -1,4 +1,6 @@
+'use client'
 import React from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   return (
@@ -25,6 +27,37 @@ export default function Home() {
         <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">
           Votre santé, notre priorité.
         </p>
+        <span>
+          <Link href="/dashboard">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+              DashBoard
+            </button>
+          </Link>
+
+          <Link href="/mesures">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+              Mesures
+            </button>
+          </Link>
+
+          <Link href="/devices">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+              Devices
+            </button>
+          </Link>
+
+          <Link href="/patients">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+              Patients
+            </button>
+          </Link>
+
+          <Link href="/alerts">
+            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+              Alerts
+            </button>
+          </Link>
+        </span>
       </div>
     </main>
   );
