@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import api from "@/utils/api";
 import { Patient } from "@/utils/types";
 import PatientTable from "@/components/PatientTable";
+import PatientCardGrid from "@/components/PatientCardGrid";
 import PatientForm from "@/components/PatientForm";
 import { PlusCircle, RefreshCw, ArrowLeft, ArrowRight, UserCog, AlertTriangle } from 'lucide-react';
 
@@ -112,7 +113,8 @@ export default function PatientsPage() {
                 {/* Section du Tableau */}
                 <div className="bg-white dark:bg-slate-800 rounded-lg shadow-md">
                     {loading && <div className="absolute top-0 left-0 w-full h-1 bg-cyan-500 animate-pulse"></div>}
-                    <PatientTable patients={patients} onEdit={handleEdit} onDeleted={load} />
+                    {/* <PatientTable patients={patients} onEdit={handleEdit} onDeleted={load} /> */}
+                    <PatientCardGrid patients={patients} onEdit={handleEdit} onDeleted={load} />
                     
                     {/* Pagination */}
                     <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-700">

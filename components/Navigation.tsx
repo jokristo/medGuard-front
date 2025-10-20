@@ -23,7 +23,6 @@ const Navigation = () => {
     { href: '/alerts', label: 'Alertes', icon: Bell },
   ];
 
-
   return (
     <nav className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -65,7 +64,7 @@ const Navigation = () => {
             </div>
           </div>
 
-          {/* Mobile menu button (optionnel pour l'instant) */}
+          {/* Mobile menu button */}
           <div className="md:hidden">
             <button className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
